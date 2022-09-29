@@ -18,7 +18,7 @@ def game():
     '''
     handle_optin = Seq([
         Assert(Txn.rekey_to() == Global.zero_address()),
-        Assert(App.optedIn(Txn.sender(), Txn.application_id())),
+        Assert(Not(App.optedIn(Txn.sender(), Txn.application_id()))),
         App.localPut(Txn.sender(), Bytes("Damage"), Int(0)),
         Return(Int(1))
     ])
@@ -79,6 +79,7 @@ def game():
     handle_noop = Seq(
         Assert(Global.group_size() == Int(1)),
         Assert(Txn.rekey_to() == Global.zero_address()),
+        Assert(App.optedIn(Txn.sender(), Txn.application_id())),
         Cond(
             [Txn.application_args[0] == Bytes("Attack"), attack_monster],
             [Txn.application_args[0] == Bytes("Reward"), reward_player]
