@@ -2,10 +2,21 @@ from pyteal import *
 
 def game():
     '''
+    Prevent rekey, close account or asset removal txns
+    '''
+    def basic_checks(txn: Txn): return And(
+        txn.rekey_to() == Global.zero_address(),
+        txn.close_remainder_to() == Global.zero_address(),
+        txn.asset_close_to() == Global.zero_address()
+    )
+
+    '''
     Initialize monster with specified health
     '''
     monsterHealth = Btoi(Txn.application_args[0])
     handle_creation = Seq([
+        Assert(basic_checks(Txn)),
+        Assert(monsterHealth >= Int(5)),
         App.globalPut(Bytes("Health"), monsterHealth),
         App.globalPut(Bytes("MaxDamage"), Int(0)),
         Return(Int(1))
@@ -15,6 +26,8 @@ def game():
     Initialize player's damage dealt to the monster
     '''
     handle_optin = Seq([
+        Assert(basic_checks(Txn)),
+        Assert(App.optedIn(Txn.sender(), Txn.application_id())),
         App.localPut(Txn.sender(), Bytes("Damage"), Int(0)),
         Return(Int(1))
     ])
@@ -47,6 +60,7 @@ def game():
     )
 
     attack_monster = Seq([
+        Assert(currentMonsterHealth > Int(0)),
         update_mvp,
         update_player_total_damage,
         update_monster_health,
@@ -58,6 +72,9 @@ def game():
     '''
     mvp = App.globalGet(Bytes("Mvp"))
     reward_player = Seq([
+        Assert(Txn.sender() == Global.creator_address()),
+        Assert(currentMonsterHealth <= Int(0)),
+        Assert(Txn.accounts[1] == mvp),
         InnerTxnBuilder.Begin(),
         InnerTxnBuilder.SetFields({
             TxnField.type_enum: TxnType.Payment,
@@ -68,7 +85,9 @@ def game():
         Return(Int(1))
     ])
 
-    handle_noop = Seq( 
+    handle_noop = Seq(
+        Assert(Global.group_size() == Int(1)),
+        Assert(basic_checks(Txn)), 
         Cond(
             [Txn.application_args[0] == Bytes("Attack"), attack_monster],
             [Txn.application_args[0] == Bytes("Reward"), reward_player]
