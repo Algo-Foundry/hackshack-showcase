@@ -26,10 +26,10 @@ node scripts/deploy.js
 ## Calling the smart contract
 
 ### Opt-In
-Complete the code in `scripts/optIn.js` to allow accounts to participate in the game.
+Complete the code in `scripts/optIn.js` to allow players to participate in the game.
 
 ### Attack
-Complete the code in `scripts/attack.js` to allow accounts to attack the monster.
+Complete the code in `scripts/attack.js` to allow players to attack the monster.
 
 ### Reward
 Complete the code in `scripts/reward.js` so that the smart contract can dispense reward to the player that does the most damage.
