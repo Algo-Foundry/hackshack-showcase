@@ -21,6 +21,7 @@ make game
 ```
 node scripts/deploy.js
 ```
+3. Update `APP_ID` variable in `.env` file 
 
 ## Calling the smart contract
 
